@@ -1,25 +1,5 @@
-// 'use client';
-// import StatCard from '@/components/StatCard';
-// import { FaCarSide, FaUserPlus } from 'react-icons/fa';
-// import { MdCancel } from 'react-icons/md';
-// import PaymentCharts from '@/components/PaymentCharts';
 
-// export default function DashboardPage() {
-//   return (
-//     <div className="space-y-6">
-//       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-//         <StatCard label="Booked Rides" value="150" icon={<FaCarSide size={30} />} />
-//         <StatCard label="Cancelled Rides" value="09" icon={<MdCancel size={30} />} />
-//         <StatCard label="New Users" value="15" icon={<FaUserPlus size={30} />} />
-//       </div>
-//       <div>
-//         <h2 className="text-lg font-semibold mb-4">Payment Status</h2>
-//         <PaymentCharts />
-//       </div>
-//     </div>
-//   );
-// }
-
+'use client';
 import React from 'react';
 import StatCard from '@/components/StatCard';
 import PaymentCharts from '@/components/PaymentCharts';
@@ -71,3 +51,4 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+
