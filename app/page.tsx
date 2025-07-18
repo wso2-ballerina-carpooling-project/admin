@@ -32,24 +32,24 @@ export default function Home() {
         <h2 className="text-lg font-semibold text-center mb-6 text-black">Welcome back!</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block mb-1 text-sm font-medium">Email address</label>
+            <label className="block mb-1 text-sm font-medium text-gray-700">Email address</label>
             <input
               type="email"
               placeholder="example@mail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-500 placeholder-gray-500"
               required
             />
           </div>
           <div>
-            <label className="block mb-1 text-sm font-medium">Password</label>
+            <label className="block mb-1 text-sm font-medium text-gray-700">Password</label>
             <div className="relative">
               <input
                 type={showPass ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4EB665] pr-10"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4EB665] pr-10 text-gray-500  placeholder-gray-500"
                 required
               />
               <button
