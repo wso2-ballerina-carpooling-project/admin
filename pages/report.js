@@ -10,6 +10,15 @@ export default function ReportPage() {
   const [endDate, setEndDate] = useState('');
   const reportRef = useRef();
 
+  useEffect(() => {
+    fetch('http://localhost:9090/api/reports/admin')
+      .then(res => res.json())
+      .then(data => {
+        setReportData(data);
+        setFilteredRides(data.rides);
+      });
+  }, []);
+
   return (
     <div style={{ padding: 20, fontFamily: 'Arial' }}>
       <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>Admin Report</h1>
