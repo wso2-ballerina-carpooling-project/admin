@@ -1,7 +1,3 @@
-
-
-
-
 "use client";
 
 import React from 'react';
@@ -77,7 +73,7 @@ const Sidebar = () => {
   ];
 
   const bottomNavItems = [
-    { icon: CreditCard, label: 'Payment Details', onClick: () => router.push('/payment-details') },
+    { icon: CreditCard, label: 'Payment Details', onClick: () => router.push('/paymentDetails') },
     { icon: LogOut, label: 'Log out', onClick: handleLogout },
   ];
 
