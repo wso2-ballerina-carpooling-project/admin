@@ -140,16 +140,16 @@ export default function PaymentPage() {
     <div className="p-6 space-y-8">
       {/* Payment Status Section */}
       <section>
-        <h1 className="text-xl font-bold mb-4 text-[#0d0d2b]">Payment Status</h1>
+        <h1 className="text-xl font-bold mb-4 text-gray-900">Payment Status</h1>
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white rounded-lg overflow-hidden">
-            <thead className="bg-[#0d0d2b]">
-              <tr>
-                <th className="py-2 px-3 text-left text-xs text-white">Emp.ID</th>
-                <th className="py-2 px-3 text-left text-xs text-white">Car No.</th>
-                <th className="py-2 px-3 text-left text-xs text-white">Driver</th>
-                <th className="py-2 px-3 text-left text-xs text-white">Payment</th>
-                <th className="py-2 px-3 text-left text-xs text-white">Status</th>
+            <thead className="bg-white">
+             <tr className="border-b border-gray-300">
+                <th className="py-2 px-3 text-left text-xs text-gray-700">Emp.ID</th>
+                <th className="py-2 px-3 text-left text-xs text-gray-700">Car No.</th>
+                <th className="py-2 px-3 text-left text-xs text-gray-700">Driver</th>
+                <th className="py-2 px-3 text-left text-xs text-gray-700">Payment</th>
+                <th className="py-2 px-3 text-left text-xs text-gray-700">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-300">
@@ -183,7 +183,7 @@ export default function PaymentPage() {
       {/* Transaction History Section */}
       <section className="space-y-4">
         <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold text-[#0d0d2b]">Transaction History</h2>
+            <h2 className="text-xl font-bold text-gray-900">Transaction History</h2>
             <div className="flex items-center space-x-2">
             <span className="text-xs text-gray-600">Year:</span>
             <select 
