@@ -147,6 +147,8 @@ export default function RidesPage() {
         </select>
       </div>
 
+      
+
       {/* Stats Cards (now display data from the API) */}
       <div className="flex flex-wrap justify-start gap-6 mb-10">
         <RideStatsCard title="Scheduled Rides" count={rideStats.scheduledRides} isLoading={isLoadingStats} />
