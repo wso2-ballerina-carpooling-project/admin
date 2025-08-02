@@ -3,17 +3,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaCheckCircle, FaClock } from 'react-icons/fa';
 
-
-
-type Driver = {
-  
+// --- CHANGE #1: SIMPLIFY THE TYPE DEFINITION ---
+// Removed registeredDate, licenseUrl, and registrationUrl as they are no longer displayed.
+type Driver =
+ {
   id: string;
   name: string;
   vehicle: string;
-  registeredDate: string;
+
   status: 'approved' | 'pending' | 'rejected';
-  licenseUrl: string;
-  registrationUrl: string;
 
 };
 
@@ -21,6 +19,7 @@ type DriverStats = {
   approvedDrivers: number;
   pendingDrivers: number;
   rejectedDrivers: number;
+
 };
 
 
@@ -37,7 +36,8 @@ export default function DriversPage() {
 
   const [updatingDriverId, setUpdatingDriverId] = useState<string | null>(null);
 
-
+  // The backend fetching logic remains the same.
+  // The extra fields sent by the backend will simply be ignored by the frontend.
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -52,6 +52,7 @@ export default function DriversPage() {
       setDrivers(data.drivers);
       setStats(data.stats);
       setError(null);
+
     } catch (err: any) {
 
       setError(err.message);
@@ -65,43 +66,24 @@ export default function DriversPage() {
     fetchData();
   }, [fetchData]);
 
-  // --- THIS IS THE CORRECTED FUNCTION ---
+
   const handleUpdateStatus = async (driverId: string, newStatus: 'approved' | 'rejected') => {
     setUpdatingDriverId(driverId);
-    
-    // Explicitly define the API path based on the action.
-    let apiPath = '';
-    if (newStatus === 'approved') {
-      apiPath = '/api/drivers/approve';
-    } else if (newStatus === 'rejected') {
-      apiPath = '/api/drivers/reject';
-    } else {
-      console.error("Invalid status provided:", newStatus);
-      setUpdatingDriverId(null);
-      return; // Exit the function if status is invalid
-    }
-
+    let apiPath = newStatus === 'approved' ? '/api/drivers/approve' : '/api/drivers/reject';
     try {
-      // Use the precise apiPath variable in the fetch call.
-      const response = await fetch(apiPath, {
+      await fetch(apiPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ driverId }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update status. Server responded with ${response.status}`);
-      }
-      
-      await fetchData(); // Refetch data to show the change
+      await fetchData();
     } catch (err: any) {
-      console.error(err);
+
       setError(err.message);
     } finally {
       setUpdatingDriverId(null);
     }
   };
-
 
 
   if (isLoading) {
@@ -113,7 +95,7 @@ export default function DriversPage() {
 
   return (
     <div className="container mx-auto p-4">
-      {/* Stat Cards */}
+      {/* Stat Cards remain the same */}
       <div className="flex flex-wrap gap-6 mb-6">
           <div className="bg-green-100 text-green-800 p-4 rounded-lg w-64 flex flex-col justify-between shadow">
               <div className="flex justify-between items-center"><FaCheckCircle className="text-green-600 text-3xl" /><p className="font-semibold text-right">Approved</p></div>
@@ -134,8 +116,7 @@ export default function DriversPage() {
               <tr className="border-b">
                 <th className="text-left p-3 text-gray-700 font-semibold">User Name</th>
                 <th className="text-left p-3 text-gray-700 font-semibold">Vehicle</th>
-                <th className="text-left p-3 text-gray-700 font-semibold">Registered On</th>
-                <th className="text-left p-3 text-gray-700 font-semibold">Documents</th>
+                {/* --- CHANGE #2: REMOVED UNWANTED TABLE HEADERS --- */}
                 <th className="text-left p-3 text-gray-700 font-semibold">Actions</th>
               </tr>
             </thead>
@@ -146,10 +127,7 @@ export default function DriversPage() {
                   <tr key={driver.id} className="border-b">
                     <td className="p-3 font-medium text-gray-700">{driver.name}</td>
                     <td className="p-3 text-gray-700">{driver.vehicle}</td>
-                    <td className="p-3 text-gray-700">{driver.registeredDate}</td>
-                    <td className="p-3 text-sm">
-                      <a href={driver.licenseUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">License</a> | <a href={driver.registrationUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Registration</a>
-                    </td>
+                    {/* --- CHANGE #3: REMOVED UNWANTED TABLE CELLS --- */}
                     <td className="p-3">
                       <div className="flex space-x-2">
                         <button
@@ -174,4 +152,4 @@ export default function DriversPage() {
       </div>
     </div>
   );
-}``
+}
