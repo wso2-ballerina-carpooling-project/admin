@@ -3,12 +3,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaCheckCircle, FaClock } from 'react-icons/fa';
 
-// --- CHANGE #1: SIMPLIFY THE TYPE DEFINITION ---
-// Removed registeredDate, licenseUrl, and registrationUrl as they are no longer displayed.
-type Driver =
- {
+// --- CHANGE #1: ADD 'email' TO THE TYPE DEFINITION ---
+type Driver = {
   id: string;
   name: string;
+  email: string; // This field will now be used
   vehicle: string;
 
   status: 'approved' | 'pending' | 'rejected';
@@ -32,12 +31,11 @@ export default function DriversPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
-  
+
 
   const [updatingDriverId, setUpdatingDriverId] = useState<string | null>(null);
 
-  // The backend fetching logic remains the same.
-  // The extra fields sent by the backend will simply be ignored by the frontend.
+  // Fetching logic remains the same.
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -66,7 +64,7 @@ export default function DriversPage() {
     fetchData();
   }, [fetchData]);
 
-
+  // Status update logic remains the same.
   const handleUpdateStatus = async (driverId: string, newStatus: 'approved' | 'rejected') => {
     setUpdatingDriverId(driverId);
     let apiPath = newStatus === 'approved' ? '/api/drivers/approve' : '/api/drivers/reject';
@@ -115,8 +113,10 @@ export default function DriversPage() {
             <thead>
               <tr className="border-b">
                 <th className="text-left p-3 text-gray-700 font-semibold">User Name</th>
+                {/* --- CHANGE #2: ADDED "EMAIL" COLUMN HEADER --- */}
+                <th className="text-left p-3 text-gray-700 font-semibold">Email</th>
                 <th className="text-left p-3 text-gray-700 font-semibold">Vehicle</th>
-                {/* --- CHANGE #2: REMOVED UNWANTED TABLE HEADERS --- */}
+
                 <th className="text-left p-3 text-gray-700 font-semibold">Actions</th>
               </tr>
             </thead>
@@ -126,8 +126,10 @@ export default function DriversPage() {
                 .map((driver) => (
                   <tr key={driver.id} className="border-b">
                     <td className="p-3 font-medium text-gray-700">{driver.name}</td>
+                    {/* --- CHANGE #3: ADDED CELL TO DISPLAY EMAIL --- */}
+                    <td className="p-3 text-gray-700">{driver.email}</td>
                     <td className="p-3 text-gray-700">{driver.vehicle}</td>
-                    {/* --- CHANGE #3: REMOVED UNWANTED TABLE CELLS --- */}
+                    
                     <td className="p-3">
                       <div className="flex space-x-2">
                         <button
