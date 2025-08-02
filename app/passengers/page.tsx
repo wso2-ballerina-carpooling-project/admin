@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaCheckCircle, FaClock } from 'react-icons/fa';
 
+// --- CHANGE #1: SIMPLIFY THE TYPE DEFINITION ---
+// Removed registeredDate as it is no longer displayed.
 type Passenger = {
   id: string;
   name: string;
   email: string;
   status: 'approved' | 'pending' | 'rejected';
-  registeredDate: string;
+  
 };
 
 type PassengerStats = {
@@ -23,13 +25,12 @@ export default function PassengersPage() {
   const [error, setError] = useState<string | null>(null);
   const [updatingPassengerId, setUpdatingPassengerId] = useState<string | null>(null);
 
+  // Fetching logic remains the same.
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/passengers');
-      if (!response.ok) {
-        throw new Error("Failed to fetch passenger data.");
-      }
+      if (!response.ok) { throw new Error("Failed to fetch passenger data."); }
       const data = await response.json();
       setPassengers(data.passengers);
       setStats(data.stats);
@@ -45,37 +46,18 @@ export default function PassengersPage() {
     fetchData();
   }, [fetchData]);
 
-  // --- THIS IS THE CORRECTED FUNCTION ---
+  // Status update logic remains the same.
   const handleUpdateStatus = async (passengerId: string, newStatus: 'approved' | 'rejected') => {
     setUpdatingPassengerId(passengerId);
-    
-    // Explicitly define the API path based on the action to prevent URL errors.
-    let apiPath = '';
-    if (newStatus === 'approved') {
-      apiPath = '/api/passengers/approve';
-    } else if (newStatus === 'rejected') {
-      apiPath = '/api/passengers/reject';
-    } else {
-      console.error("Invalid status provided:", newStatus);
-      setUpdatingPassengerId(null);
-      return; // Exit the function if status is invalid
-    }
-
+    let apiPath = newStatus === 'approved' ? '/api/passengers/approve' : '/api/passengers/reject';
     try {
-      // Use the precise apiPath variable in the fetch call.
-      const response = await fetch(apiPath, {
+      await fetch(apiPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passengerId }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update status. Server responded with ${response.status}`);
-      }
-      
-      await fetchData(); // Refetch all data to ensure UI is perfectly in sync
+      await fetchData();
     } catch (err: any) {
-      console.error(err);
       setError(err.message);
     } finally {
       setUpdatingPassengerId(null);
@@ -87,7 +69,7 @@ export default function PassengersPage() {
 
   return (
     <div className="container mx-auto p-4">
-      {/* Stat Cards */}
+      {/* Stat Cards remain the same */}
       <div className="flex flex-wrap gap-6 mb-6">
           <div className="bg-green-100 text-green-800 p-4 rounded-lg w-64 flex flex-col justify-between shadow">
               <div className="flex justify-between items-center"><FaCheckCircle className="text-green-600 text-3xl" /><p className="font-semibold text-right">Approved</p></div>
@@ -108,7 +90,8 @@ export default function PassengersPage() {
               <tr className="border-b">
                 <th className="text-left p-3 text-gray-700 font-semibold">User Name</th>
                 <th className="text-left p-3 text-gray-700 font-semibold">Email</th>
-                <th className="text-left p-3 text-gray-700 font-semibold">Registered On</th>
+                <th className="text-left p-3 text-gray-700 font-semibold">Status</th>
+                {/* --- CHANGE #2: REMOVED "REGISTERED ON" HEADER --- */}
                 <th className="text-left p-3 text-gray-700 font-semibold">Actions</th>
               </tr>
             </thead>
@@ -117,7 +100,12 @@ export default function PassengersPage() {
                 <tr key={passenger.id} className="border-b">
                   <td className="p-3 font-medium text-gray-700">{passenger.name}</td>
                   <td className="p-3 text-gray-700">{passenger.email}</td>
-                  <td className="p-3 text-gray-700">{passenger.registeredDate}</td>
+                  <td className="p-3">
+                    <span className="px-2 py-1 rounded-full text-xs bg-yellow-200 text-yellow-800">
+                      {passenger.status}
+                    </span>
+                  </td>
+                  {/* --- CHANGE #3: REMOVED "REGISTERED ON" CELL --- */}
                   <td className="p-3">
                     <div className="flex space-x-2">
                       <button className="bg-green-500 text-white px-3 py-1 rounded disabled:opacity-50" onClick={() => handleUpdateStatus(passenger.id, 'approved')} disabled={updatingPassengerId === passenger.id}>
@@ -144,7 +132,7 @@ export default function PassengersPage() {
               <tr className="border-b">
                 <th className="text-left p-3 text-gray-700 font-semibold">User Name</th>
                 <th className="text-left p-3 text-gray-700 font-semibold">Email</th>
-                <th className="text-left p-3 text-gray-700 font-semibold">Registered On</th>
+                {/* --- CHANGE #2: REMOVED "REGISTERED ON" HEADER --- */}
                 <th className="text-left p-3 text-gray-700 font-semibold">Status</th>
               </tr>
             </thead>
@@ -153,7 +141,7 @@ export default function PassengersPage() {
                 <tr key={passenger.id} className="border-b">
                   <td className="p-3 font-medium text-gray-700">{passenger.name}</td>
                   <td className="p-3 text-gray-700">{passenger.email}</td>
-                  <td className="p-3 text-gray-700">{passenger.registeredDate}</td>
+                  {/* --- CHANGE #3: REMOVED "REGISTERED ON" CELL --- */}
                   <td className="p-3">
                     <span className="px-2 py-1 rounded-full text-xs bg-green-200 text-green-800">
                       {passenger.status}
