@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaCheckCircle, FaClock } from 'react-icons/fa';
+import { Car, UserCheck, Clock, Mail, CheckCircle, XCircle, User, Users } from 'lucide-react';
 
 // --- CHANGE #1: ADD 'email' TO THE TYPE DEFINITION ---
 type Driver = {
@@ -9,17 +9,50 @@ type Driver = {
   name: string;
   email: string; // This field will now be used
   vehicle: string;
-
   status: 'approved' | 'pending' | 'rejected';
-
 };
 
 type DriverStats = {
   approvedDrivers: number;
   pendingDrivers: number;
   rejectedDrivers: number;
-
 };
+
+interface DriverStatsCardProps {
+  title: string;
+  count: number;
+  isLoading: boolean;
+  icon: React.ElementType;
+  bgColor: string;
+  iconColor: string;
+  textColor: string;
+}
+
+const DriverStatsCard: React.FC<DriverStatsCardProps> = ({ 
+  title, 
+  count, 
+  isLoading, 
+  icon: Icon, 
+  bgColor, 
+  iconColor, 
+  textColor 
+}) => (
+  <div className={`${bgColor} rounded-xl p-6 border border-gray-100 hover:shadow-lg transition-all duration-300`}>
+    <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-3">
+        <div className={`p-3 rounded-lg ${bgColor} ring-2 ring-white`}>
+          <Icon className={`w-6 h-6 ${iconColor}`} />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className={`text-2xl font-bold ${textColor}`}>
+            {isLoading ? '...' : count.toString().padStart(2, '0')}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 
 export default function DriversPage() {
@@ -92,66 +125,278 @@ export default function DriversPage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      {/* Stat Cards remain the same */}
-      <div className="flex flex-wrap gap-6 mb-6">
-          <div className="bg-green-100 text-green-800 p-4 rounded-lg w-64 flex flex-col justify-between shadow">
-              <div className="flex justify-between items-center"><FaCheckCircle className="text-green-600 text-3xl" /><p className="font-semibold text-right">Approved</p></div>
-              <div className="text-center mt-6"><span className="text-5xl font-bold">{stats.approvedDrivers}</span></div>
-          </div>
-          <div className="bg-yellow-100 text-yellow-800 p-4 rounded-lg w-64 flex flex-col justify-between shadow">
-              <div className="flex justify-between items-center"><FaClock className="text-yellow-600 text-3xl" /><p className="font-semibold text-right">Pending</p></div>
-              <div className="text-center mt-6"><span className="text-5xl font-bold">{stats.pendingDrivers}</span></div>
-          </div>
+    <div className="space-y-8">
+      
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <DriverStatsCard 
+          title="Total Drivers" 
+          count={drivers.length} 
+          isLoading={isLoading}
+          icon={Users}
+          bgColor="bg-blue-50"
+          iconColor="text-blue-600"
+          textColor="text-blue-600"
+        />
+        <DriverStatsCard 
+          title="Approved Drivers" 
+          count={stats.approvedDrivers} 
+          isLoading={isLoading}
+          icon={UserCheck}
+          bgColor="bg-green-50"
+          iconColor="text-green-600"
+          textColor="text-green-600"
+        />
+        <DriverStatsCard 
+          title="Pending Applications" 
+          count={stats.pendingDrivers} 
+          isLoading={isLoading}
+          icon={Clock}
+          bgColor="bg-yellow-50"
+          iconColor="text-yellow-600"
+          textColor="text-yellow-600"
+        />
+        <DriverStatsCard 
+          title="Rejected Applications" 
+          count={stats.rejectedDrivers} 
+          isLoading={isLoading}
+          icon={XCircle}
+          bgColor="bg-red-50"
+          iconColor="text-red-600"
+          textColor="text-red-600"
+        />
       </div>
 
       {/* Pending Drivers Table */}
-      <div className="bg-white p-6 rounded-lg shadow mb-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-700">Pending Driver Applications</h2>
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-yellow-50 rounded-lg">
+              <Clock className="w-5 h-5 text-yellow-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900">Pending Driver Applications</h2>
+            <span className="bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
+              {drivers.filter(d => d.status === 'pending').length}
+            </span>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left p-3 text-gray-700 font-semibold">User Name</th>
-                {/* --- CHANGE #2: ADDED "EMAIL" COLUMN HEADER --- */}
-                <th className="text-left p-3 text-gray-700 font-semibold">Email</th>
-                <th className="text-left p-3 text-gray-700 font-semibold">Vehicle</th>
-
-                <th className="text-left p-3 text-gray-700 font-semibold">Actions</th>
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left p-4 text-gray-700 font-semibold">
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4" />
+                    <span>User Name</span>
+                  </div>
+                </th>
+                <th className="text-left p-4 text-gray-700 font-semibold">
+                  <div className="flex items-center space-x-2">
+                    <Mail className="w-4 h-4" />
+                    <span>Email</span>
+                  </div>
+                </th>
+                <th className="text-left p-4 text-gray-700 font-semibold">
+                  <div className="flex items-center space-x-2">
+                    <Car className="w-4 h-4" />
+                    <span>Vehicle</span>
+                  </div>
+                </th>
+                <th className="text-left p-4 text-gray-700 font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100">
               {drivers
                 .filter(driver => driver.status === 'pending')
                 .map((driver) => (
-                  <tr key={driver.id} className="border-b">
-                    <td className="p-3 font-medium text-gray-700">{driver.name}</td>
-                    {/* --- CHANGE #3: ADDED CELL TO DISPLAY EMAIL --- */}
-                    <td className="p-3 text-gray-700">{driver.email}</td>
-                    <td className="p-3 text-gray-700">{driver.vehicle}</td>
-                    
-                    <td className="p-3">
+                  <tr key={driver.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="p-4">
+                      <div className="font-medium text-gray-900">{driver.name}</div>
+                    </td>
+                    <td className="p-4 text-gray-700">{driver.email}</td>
+                    <td className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <Car className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-700">{driver.vehicle}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
                       <div className="flex space-x-2">
                         <button
-                          className="bg-green-500 text-white px-3 py-1 rounded disabled:opacity-50"
+                          className="inline-flex items-center px-3 py-1.5 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           onClick={() => handleUpdateStatus(driver.id, 'approved')}
                           disabled={updatingDriverId === driver.id}>
-                          {updatingDriverId === driver.id ? '...' : 'Approve'}
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          {updatingDriverId === driver.id ? 'Processing...' : 'Approve'}
                         </button>
                         <button
-                          className="bg-red-500 text-white px-3 py-1 rounded disabled:opacity-50"
+                          className="inline-flex items-center px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           onClick={() => handleUpdateStatus(driver.id, 'rejected')}
                           disabled={updatingDriverId === driver.id}>
-                          {updatingDriverId === driver.id ? '...' : 'Reject'}
+                          <XCircle className="w-4 h-4 mr-1" />
+                          {updatingDriverId === driver.id ? 'Processing...' : 'Reject'}
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))}
+              {drivers.filter(d => d.status === 'pending').length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-gray-500">
+                    <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p className="text-lg font-medium">No pending applications</p>
+                    <p className="text-sm">All driver applications have been processed</p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Approved Drivers Table */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-green-50 rounded-lg">
+              <UserCheck className="w-5 h-5 text-green-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900">Approved Drivers</h2>
+            <span className="bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
+              {drivers.filter(d => d.status === 'approved').length}
+            </span>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left p-4 text-gray-700 font-semibold">
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4" />
+                    <span>User Name</span>
+                  </div>
+                </th>
+                <th className="text-left p-4 text-gray-700 font-semibold">
+                  <div className="flex items-center space-x-2">
+                    <Mail className="w-4 h-4" />
+                    <span>Email</span>
+                  </div>
+                </th>
+                <th className="text-left p-4 text-gray-700 font-semibold">
+                  <div className="flex items-center space-x-2">
+                    <Car className="w-4 h-4" />
+                    <span>Vehicle</span>
+                  </div>
+                </th>
+                <th className="text-left p-4 text-gray-700 font-semibold">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {drivers
+                .filter(driver => driver.status === 'approved')
+                .map((driver) => (
+                  <tr key={driver.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="p-4">
+                      <div className="font-medium text-gray-900">{driver.name}</div>
+                    </td>
+                    <td className="p-4 text-gray-700">{driver.email}</td>
+                    <td className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <Car className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-700">{driver.vehicle}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        {driver.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              {drivers.filter(d => d.status === 'approved').length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-gray-500">
+                    <UserCheck className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p className="text-lg font-medium">No approved drivers yet</p>
+                    <p className="text-sm">Approved drivers will appear here</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Rejected Drivers Table */}
+      {stats.rejectedDrivers > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-red-50 rounded-lg">
+                <XCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900">Rejected Applications</h2>
+              <span className="bg-red-100 text-red-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                {drivers.filter(d => d.status === 'rejected').length}
+              </span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left p-4 text-gray-700 font-semibold">
+                    <div className="flex items-center space-x-2">
+                      <User className="w-4 h-4" />
+                      <span>User Name</span>
+                    </div>
+                  </th>
+                  <th className="text-left p-4 text-gray-700 font-semibold">
+                    <div className="flex items-center space-x-2">
+                      <Mail className="w-4 h-4" />
+                      <span>Email</span>
+                    </div>
+                  </th>
+                  <th className="text-left p-4 text-gray-700 font-semibold">
+                    <div className="flex items-center space-x-2">
+                      <Car className="w-4 h-4" />
+                      <span>Vehicle</span>
+                    </div>
+                  </th>
+                  <th className="text-left p-4 text-gray-700 font-semibold">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {drivers
+                  .filter(driver => driver.status === 'rejected')
+                  .map((driver) => (
+                    <tr key={driver.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="p-4">
+                        <div className="font-medium text-gray-900">{driver.name}</div>
+                      </td>
+                      <td className="p-4 text-gray-700">{driver.email}</td>
+                      <td className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <Car className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-700">{driver.vehicle}</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <XCircle className="w-3 h-3 mr-1" />
+                          {driver.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
