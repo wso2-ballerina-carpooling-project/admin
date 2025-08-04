@@ -9,7 +9,7 @@ const DashboardPage = () => {
   const statsData = [
     {
       title: 'Booked Rides',
-      value: '150',
+      value: '10',
       icon: Car,
       bgColor: 'bg-blue-100',
       iconColor: 'text-blue-600',

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 
-// --- Helper constants and functions (no changes here) ---
 const months = [
   { name: 'January', value: 1 }, { name: 'February', value: 2 },
   { name: 'March', value: 3 }, { name: 'April', value: 4 },
@@ -76,11 +75,9 @@ export default function RidesPage() {
     };
 
     fetchRideStats();
-  }, [selectedMonth, selectedYear]); // This dependency array is crucial: the effect re-runs whenever month or year changes
-
-  // --- NEW: Function to handle the "Generate Report" button click ---
+  }, [selectedMonth, selectedYear]); 
   const handleGenerateReport = async () => {
-    setIsGeneratingReport(true); // Show loading text on the button
+    setIsGeneratingReport(true); 
     try {
       const response = await fetch('/api/reports/rides', {
         method: 'POST',
