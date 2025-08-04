@@ -1,25 +1,81 @@
-
-
 "use client";
 
-import React, { useState, useRef } from 'react';
-import { Search, Bell, User, Upload } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { getUserFromToken } from '../utils/auth';
+import { Search, Bell, User, Upload, Settings, LogOut, ChevronDown } from 'lucide-react';
 
 const Header = () => {
+  const router = useRouter();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [userInfo, setUserInfo] = useState<{
+    name: string;
+    email: string;
+    role: string;
+    initials: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const notifications = [
-    { id: 1, message: "New ride booking received", time: "2 minutes ago", unread: true },
-    { id: 2, message: "Payment completed for ride #1234", time: "5 minutes ago", unread: true },
-    { id: 3, message: "Driver John updated their status", time: "10 minutes ago", unread: false },
-    { id: 4, message: "New user registration", time: "15 minutes ago", unread: false },
-    { id: 5, message: "Weekly report is ready", time: "1 hour ago", unread: false },
-  ];
+  useEffect(() => {
+    const loadUserInfo = () => {
+      const user = getUserFromToken();
+      if (user) {
+        const name = user.name || user.username || user.email?.split('@')[0] || 'Admin';
+        const email = user.email || 'admin@carpool.com';
+        const role = user.role || 'Administrator';
+        
+        // Generate initials from name
+        const initials = name
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase())
+          .slice(0, 2)
+          .join('');
+        
+        setUserInfo({
+          name,
+          email,
+          role,
+          initials: initials || 'AD'
+        });
+      } else {
+        // Fallback to default values if no token
+        setUserInfo({
+          name: 'Admin User',
+          email: 'admin@carpool.com',
+          role: 'Administrator',
+          initials: 'AD'
+        });
+      }
+    };
 
-  const unreadCount = notifications.filter(n => n.unread).length;
+    loadUserInfo();
+  }, []);
+
+
+  const handleLogout = () => {
+    try {
+      console.log("Logout initiated...");
+      
+      // Clear authentication data from localStorage
+      localStorage.removeItem("auth");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      
+      console.log("Auth data cleared");
+      
+      // Close profile menu
+      setShowProfileMenu(false);
+      
+      // Navigate to root or login page
+      router.replace("/");
+      
+    } catch (error) {
+      console.error("Logout error:", error);
+      window.location.href = "/";
+    }
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -41,118 +97,89 @@ const Header = () => {
   };
 
   const markAsRead = (id: number) => {
-    // This would typically update the notification status in your state management
     console.log(`Marking notification ${id} as read`);
   };
 
+  const getNotificationIcon = (type: string) => {
+    const iconClass = "w-3 h-3";
+    switch (type) {
+      case 'booking': return <div className={`${iconClass} bg-blue-500 rounded-full`}></div>;
+      case 'payment': return <div className={`${iconClass} bg-green-500 rounded-full`}></div>;
+      case 'status': return <div className={`${iconClass} bg-yellow-500 rounded-full`}></div>;
+      case 'user': return <div className={`${iconClass} bg-purple-500 rounded-full`}></div>;
+      case 'report': return <div className={`${iconClass} bg-gray-500 rounded-full`}></div>;
+      default: return <div className={`${iconClass} bg-gray-400 rounded-full`}></div>;
+    }
+  };
+
   return (
-    <header className="bg-white shadow-sm border-b relative">
-      <div className="flex items-center justify-between px-8 py-4">
-        <h1 className="text-2xl font-semibold text-gray-800">CarPool - Dashboard</h1>
+    <header className="bg-white shadow-sm border-b border-gray-100 relative">
+      <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
+        {/* Logo and Title */}
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+            <div className="w-4 h-4 bg-white rounded-sm"></div>
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">CarPool</h1>
+            <p className="text-xs text-gray-500 -mt-1">Admin Dashboard</p>
+          </div>
+        </div>
         
-        <div className="flex items-center space-x-4">
-          {/* Search */}
+        <div className="flex items-center space-x-6">
+          {/* Enhanced Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Search"
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-80"
+              placeholder="Search users, rides, payments..."
+              className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 w-80 text-sm placeholder-gray-400"
             />
           </div>
-          
-          {/* Notifications */}
-          <div className="relative">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <Bell className="w-6 h-6" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Notifications Dropdown */}
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                <div className="p-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-800">Notifications</h3>
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                        notification.unread ? 'bg-blue-50' : ''
-                      }`}
-                      onClick={() => markAsRead(notification.id)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className={`text-sm ${notification.unread ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
-                            {notification.message}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
-                        </div>
-                        {notification.unread && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-1"></div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-4 border-t border-gray-200">
-                  <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                    View all notifications
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* User Profile */}
           <div className="relative">
             <button
               onClick={handleProfileClick}
-              className="w-10 h-10 rounded-full border-2 border-gray-300 hover:border-blue-500 transition-colors overflow-hidden"
+              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-all duration-200 group"
             >
-              {profileImage ? (
-                <img
-                  src={profileImage}
-                  alt="Admin Profile"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                  <User className="w-6 h-6 text-gray-600" />
-                </div>
-              )}
+              <div className="w-9 h-9 rounded-full border-2 border-gray-200 group-hover:border-blue-300 transition-colors duration-200 overflow-hidden flex-shrink-0">
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt="Admin Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                    <User className="w-5 h-5 text-gray-500" />
+                  </div>
+                )}
+              </div>
+              <div className="hidden md:block text-left">
+                <p className="text-sm font-medium text-gray-700">{userInfo?.name || 'Admin User'}</p>
+                <p className="text-xs text-gray-500">Online</p>
+              </div>
+              <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
             </button>
 
-            {/* Profile Menu */}
+            {/* Enhanced Profile Menu */}
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                <div className="p-4 border-b border-gray-200">
-                  <p className="text-sm font-medium text-gray-800">Admin</p>
-                  <p className="text-xs text-gray-500">admin@carpool.com</p>
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+                <div className="p-4 border-b border-gray-100 bg-gray-50">
+                  <p className="text-sm font-semibold text-gray-900">{userInfo?.name || 'Admin User'}</p>
+                  <p className="text-xs text-gray-500">{userInfo?.email || 'admin@carpool.com'}</p>
+                  <div className="flex items-center mt-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                    <span className="text-xs text-gray-600">Online</span>
+                  </div>
                 </div>
                 <div className="p-2">
-                  <button
-  onClick={handleUploadClick}
-  className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md text-left"
->
-  <Upload className="w-4 h-4" />
-  <span>Upload Profile Image</span>
-</button>
-                  <button className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
-                    <User className="w-4 h-4" />
-                    <span>Edit Profile</span>
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Log Out</span>
                   </button>
-                  <hr className="my-2" />
-                  
                 </div>
               </div>
             )}
@@ -169,12 +196,21 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Overlay to close dropdowns when clicking outside */}
-      {(showNotifications || showProfileMenu) && (
+      {/* Enhanced Overlay - Only show for notifications, not profile menu */}
+      {showNotifications && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => {
             setShowNotifications(false);
+          }}
+        ></div>
+      )}
+      
+      {/* Click outside handler for profile menu without overlay */}
+      {showProfileMenu && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => {
             setShowProfileMenu(false);
           }}
         ></div>
