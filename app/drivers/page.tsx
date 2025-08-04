@@ -1,185 +1,157 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaCheckCircle, FaClock } from 'react-icons/fa';
 
-const DriversPage = () => {
-  const [approvedDrivers, setApprovedDrivers] = useState(55); // Updated to reflect new dummy approved drivers
-  const [pendingDrivers, setPendingDrivers] = useState(15);
+// --- CHANGE #1: ADD 'email' TO THE TYPE DEFINITION ---
+type Driver = {
+  id: string;
+  name: string;
+  email: string; // This field will now be used
+  vehicle: string;
 
-  const [drivers, setDrivers] = useState([
-    { name: 'Leigh Cummerata', email: 'leigh.cummerata@email.com', status: 'pending' },
-    { name: 'Edmond Rogahn', email: 'edmond.rogahn@email.com', status: 'pending' },
-    { name: 'Noel Maggio', email: 'noel.maggio@email.com', status: 'pending' },
-    { name: 'Ms. Bryant Bayer', email: 'bryant.bayer@email.com', status: 'pending' },
-    { name: 'Greg Spencer', email: 'greg.spencer@email.com', status: 'pending' },
-    { name: 'Erik Kling', email: 'erik.kling@email.com', status: 'pending' },
-    { name: 'Noah Fadel', email: 'noah.fadel@email.com', status: 'pending' },
-    { name: 'Faith Harris', email: 'faith.harris@email.com', status: 'pending' },
-    { name: 'Anthony Ratke', email: 'anthony.ratke@email.com', status: 'pending' },
-    { name: 'Harriet Hintz', email: 'harriet.hintz@email.com', status: 'pending' },
-    { name: 'Alice Johnson', email: 'alice.johnson@email.com', status: 'approved' },
-    { name: 'Bob Smith', email: 'bob.smith@email.com', status: 'approved' },
-    { name: 'Carol Williams', email: 'carol.williams@email.com', status: 'approved' },
-  ]);
+  status: 'approved' | 'pending' | 'rejected';
 
-  const handleApprove = (index: number) => {
-    const updatedDrivers = [...drivers];
-    if (updatedDrivers[index].status === 'pending') {
-      updatedDrivers[index].status = 'approved';
-      setDrivers(updatedDrivers);
-      setApprovedDrivers(approvedDrivers + 1);
-      setPendingDrivers(pendingDrivers - 1);
-      console.log(`Approved: ${drivers[index].name}`);
+};
+
+type DriverStats = {
+  approvedDrivers: number;
+  pendingDrivers: number;
+  rejectedDrivers: number;
+
+};
+
+
+export default function DriversPage() {
+
+  const [stats, setStats] = useState<DriverStats>({ approvedDrivers: 0, pendingDrivers: 0, rejectedDrivers: 0 });
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [error, setError] = useState<string | null>(null);
+
+
+  const [updatingDriverId, setUpdatingDriverId] = useState<string | null>(null);
+
+  // Fetching logic remains the same.
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+
+      const response = await fetch('/api/drivers');
+      if (!response.ok) {
+        throw new Error("Failed to fetch driver data.");
+      }
+      const data = await response.json();
+
+
+      setDrivers(data.drivers);
+      setStats(data.stats);
+      setError(null);
+
+    } catch (err: any) {
+
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Status update logic remains the same.
+  const handleUpdateStatus = async (driverId: string, newStatus: 'approved' | 'rejected') => {
+    setUpdatingDriverId(driverId);
+    let apiPath = newStatus === 'approved' ? '/api/drivers/approve' : '/api/drivers/reject';
+    try {
+      await fetch(apiPath, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ driverId }),
+      });
+      await fetchData();
+    } catch (err: any) {
+
+      setError(err.message);
+    } finally {
+      setUpdatingDriverId(null);
     }
   };
 
-  const handleReject = (index: number) => {
-    const updatedDrivers = [...drivers];
-    if (updatedDrivers[index].status === 'pending') {
-      updatedDrivers[index].status = 'rejected';
-      setDrivers(updatedDrivers);
-      setPendingDrivers(pendingDrivers - 1);
-      console.log(`Rejected: ${drivers[index].name}`);
-    }
-  };
 
-  const handleDelete = (index: number) => {
-    const updatedDrivers = drivers.filter((_, i) => i !== index);
-    setDrivers(updatedDrivers);
-    setApprovedDrivers(approvedDrivers - 1);
-    console.log(`Deleted: ${drivers[index].name}`);
-  };
+  if (isLoading) {
+    return <div className="text-center p-8">Loading driver data...</div>;
+  }
+  if (error) {
+    return <div className="text-center text-red-500 p-8">Error: {error}</div>;
+  }
 
   return (
     <div className="container mx-auto p-4">
-      {/* Pending Drivers Card */}
-      <div className="bg-yellow-100 text-yellow-800 p-4 rounded-lg w-64 flex flex-col justify-between shadow mb-6">
-        <div className="flex left-end items-center space-x-14">
-          <FaClock className="text-yellow-600 text-3xl" />
-          <p className="font-semibold text-right">Pending Drivers</p>
-        </div>
-        <div className="text-center mt-6">
-          <span className="text-5xl font-bold">{pendingDrivers}</span>
-        </div>
+      {/* Stat Cards remain the same */}
+      <div className="flex flex-wrap gap-6 mb-6">
+          <div className="bg-green-100 text-green-800 p-4 rounded-lg w-64 flex flex-col justify-between shadow">
+              <div className="flex justify-between items-center"><FaCheckCircle className="text-green-600 text-3xl" /><p className="font-semibold text-right">Approved</p></div>
+              <div className="text-center mt-6"><span className="text-5xl font-bold">{stats.approvedDrivers}</span></div>
+          </div>
+          <div className="bg-yellow-100 text-yellow-800 p-4 rounded-lg w-64 flex flex-col justify-between shadow">
+              <div className="flex justify-between items-center"><FaClock className="text-yellow-600 text-3xl" /><p className="font-semibold text-right">Pending</p></div>
+              <div className="text-center mt-6"><span className="text-5xl font-bold">{stats.pendingDrivers}</span></div>
+          </div>
       </div>
 
       {/* Pending Drivers Table */}
       <div className="bg-white p-6 rounded-lg shadow mb-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-700">Pending Drivers</h2>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-2 text-gray-700 font-semibold">User Name</th>
-              <th className="text-left py-2 text-gray-700 font-semibold">Company Email</th>
-              <th className="text-left py-2 text-gray-700 font-semibold">Status</th>
-              <th className="text-left py-2 text-gray-700 font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {drivers
-              .filter(driver => driver.status === 'pending')
-              .map((driver, index) => (
-                <tr key={index} className="border-b">
-                  <td className="py-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                        {/* Placeholder for profile image */}
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-700">{driver.name}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-2 text-gray-700">{driver.email}</td>
-                  <td className="py-2">
-                    <span className="px-2 py-1 rounded-full text-xs bg-yellow-200 text-yellow-800">
-                      {driver.status}
-                    </span>
-                  </td>
-                  <td className="py-2">
-                    <div className="flex space-x-2">
-                      <button
-                        className="bg-green-500 text-white px-3 py-1 rounded"
-                        onClick={() => handleApprove(drivers.findIndex(d => d === driver))}
-                        disabled={driver.status !== 'pending'}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        className="bg-yellow-500 text-white px-3 py-1 rounded"
-                        onClick={() => handleReject(drivers.findIndex(d => d === driver))}
-                        disabled={driver.status !== 'pending'}
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
+        <h2 className="text-lg font-semibold mb-4 text-gray-700">Pending Driver Applications</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left p-3 text-gray-700 font-semibold">User Name</th>
+                {/* --- CHANGE #2: ADDED "EMAIL" COLUMN HEADER --- */}
+                <th className="text-left p-3 text-gray-700 font-semibold">Email</th>
+                <th className="text-left p-3 text-gray-700 font-semibold">Vehicle</th>
 
-      {/* Approved Drivers Card */}
-      <div className="bg-green-100 text-green-800 p-4 rounded-lg w-64 flex flex-col justify-between shadow mb-6">
-        <div className="flex left-end items-center space-x-10">
-          <FaCheckCircle className="text-green-600 text-3xl" />
-          <p className="font-semibold text-right">Approved Drivers</p>
-        </div>
-        <div className="text-center mt-6">
-          <span className="text-5xl font-bold">{approvedDrivers}</span>
-        </div>
-      </div>
-
-      {/* Approved Drivers Table */}
-      <div className="bg-white p-6 rounded-lg shadow mb-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-700">Approved Drivers</h2>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-2 text-gray-700 font-semibold">User Name</th>
-              <th className="text-left py-2 text-gray-700 font-semibold">Company Email</th>
-              <th className="text-left py-2 text-gray-700 font-semibold">Status</th>
-              <th className="text-left py-2 text-gray-700 font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {drivers
-              .filter(driver => driver.status === 'approved')
-              .map((driver, index) => (
-                <tr key={index} className="border-b">
-                  <td className="py-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                        {/* Placeholder for profile image */}
+                <th className="text-left p-3 text-gray-700 font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {drivers
+                .filter(driver => driver.status === 'pending')
+                .map((driver) => (
+                  <tr key={driver.id} className="border-b">
+                    <td className="p-3 font-medium text-gray-700">{driver.name}</td>
+                    {/* --- CHANGE #3: ADDED CELL TO DISPLAY EMAIL --- */}
+                    <td className="p-3 text-gray-700">{driver.email}</td>
+                    <td className="p-3 text-gray-700">{driver.vehicle}</td>
+                    
+                    <td className="p-3">
+                      <div className="flex space-x-2">
+                        <button
+                          className="bg-green-500 text-white px-3 py-1 rounded disabled:opacity-50"
+                          onClick={() => handleUpdateStatus(driver.id, 'approved')}
+                          disabled={updatingDriverId === driver.id}>
+                          {updatingDriverId === driver.id ? '...' : 'Approve'}
+                        </button>
+                        <button
+                          className="bg-red-500 text-white px-3 py-1 rounded disabled:opacity-50"
+                          onClick={() => handleUpdateStatus(driver.id, 'rejected')}
+                          disabled={updatingDriverId === driver.id}>
+                          {updatingDriverId === driver.id ? '...' : 'Reject'}
+                        </button>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-700">{driver.name}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-2 text-gray-700">{driver.email}</td>
-                  <td className="py-2">
-                    <span className="px-2 py-1 rounded-full text-xs bg-green-200 text-green-800">
-                      {driver.status}
-                    </span>
-                  </td>
-                  <td className="py-2">
-                    <button
-                      className="bg-red-500 text-white px-3 py-1 rounded"
-                      onClick={() => handleDelete(drivers.findIndex(d => d === driver))}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
-};
-
-export default DriversPage;
+}
